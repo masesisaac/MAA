@@ -1,0 +1,31 @@
+image: ubuntu:16.04
+
+stages:
+  - build
+  - deploy
+
+build-project-image:
+  stage: build
+  image: docker:git
+  services:
+  - docker:dind
+  script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
+    - docker build -t registry.gitlab.com/zonaster/zonaster-web-services .
+    - docker push registry.gitlab.com/zonaster/zonaster-web-services:latest
+  only:
+    - master
+
+
+deploy-to-production:
+  stage: deploy
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$DEPLOY_KEY" | base64 -d)
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+  script:
+    - ssh host@35.231.222.250 'docker pull registry.gitlab.com/zonaster/zonaster-web-services && docker stop zonaster-web-services && docker rm zonaster-web-services && docker run --name=zonaster-web-services --restart=always -p 8090:80 -d registry.gitlab.com/zonaster/zonaster-web-services:latest'
+  only:
+    - master
