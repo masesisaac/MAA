@@ -11,8 +11,8 @@ build-project-image:
   - docker:dind
   script:
     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
-    - docker build -t registry.gitlab.com/zonaster/zonaster-web-services .
-    - docker push registry.gitlab.com/zonaster/zonaster-web-services:latest
+    - docker build -t registry.gitlab.com/zonaster/MAA .
+    - docker push registry.gitlab.com/zonaster/MAA:latest
   only:
     - master
 
@@ -26,6 +26,6 @@ deploy-to-production:
     - mkdir -p ~/.ssh
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
   script:
-    - ssh host@35.231.222.250 'docker pull registry.gitlab.com/zonaster/zonaster-web-services && docker stop zonaster-web-services && docker rm zonaster-web-services && docker run --name=zonaster-web-services --restart=always -p 8090:80 -d registry.gitlab.com/zonaster/zonaster-web-services:latest'
+    - ssh host@35.231.222.250 'docker pull registry.gitlab.com/zonaster/MAA && docker stop MAA && docker rm MAA && docker run --name=MAA --restart=always -p 8090:80 -d registry.gitlab.com/zonaster/MAA:latest'
   only:
     - master
